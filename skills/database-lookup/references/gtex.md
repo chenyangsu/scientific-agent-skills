@@ -47,12 +47,16 @@ GET /expression/topExpressedGene?tissueSiteDetailId=Liver&datasetId=gtex_v8
 
 ### Single-tissue eQTLs
 ```
-GET /association/singleTissueEqtl?gencodeId=ENSG00000139618.14&tissueSiteDetailId=Whole_Blood&datasetId=gtex_v8
+GET /association/singleTissueEqtl?gencodeId=ENSG00000139618.14&tissueSiteDetailId=Thyroid&datasetId=gtex_v8
 ```
 Parameters:
 - `gencodeId` -- Versioned Ensembl gene ID (optional filter)
 - `tissueSiteDetailId` -- tissue ID (optional filter)
 - `datasetId` -- `gtex_v8` (explicit historical selection; defaults vary by endpoint)
+
+Returns significant variant-gene pairs only. An empty `data` list means no
+significant eQTL for that gene in that tissue, not a failed call: BRCA2 has
+50 pairs in `Thyroid` and none in `Whole_Blood` in `gtex_v8`.
 
 ### Multi-tissue eQTLs
 ```
@@ -91,8 +95,12 @@ GET /expression/topExpressedGene?tissueSiteDetailId=Brain_Cortex&datasetId=gtex_
 
 ### Dynamic eQTL query for a gene–variant–tissue combination
 ```
-GET /association/dyneqtl?variantId=chr1_1000000_A_G_b38&gencodeId=ENSG00000139618.14&tissueSiteDetailId=Whole_Blood&datasetId=gtex_v8
+GET /association/dyneqtl?variantId=chr13_32299038_T_C_b38&gencodeId=ENSG00000139618.14&tissueSiteDetailId=Thyroid&datasetId=gtex_v8
 ```
+All three IDs are required. A variant absent from the dataset returns HTTP 400
+(`variantId ... not found in dataset 'gtex_v8'`). Take `variantId` from a
+`singleTissueEqtl` row; the response gives `nes`, `pValue`, `maf`, and
+per-sample `genotypes` with matching expression values in `data`.
 
 ## Tissue ID examples
 Use the underscore-separated names exactly:
@@ -100,6 +108,7 @@ Use the underscore-separated names exactly:
 - `Muscle_Skeletal`, `Adipose_Subcutaneous`, `Lung`, `Skin_Sun_Exposed_Lower_leg`
 
 ## Example response (median gene expression)
+Two of the 54 tissue records returned for BRCA2 in `gtex_v8` (checked 2026-11-24):
 ```json
 {
   "data": [
@@ -107,7 +116,7 @@ Use the underscore-separated names exactly:
       "datasetId": "gtex_v8",
       "gencodeId": "ENSG00000139618.14",
       "geneSymbol": "BRCA2",
-      "median": 4.523,
+      "median": 0.208612,
       "tissueSiteDetailId": "Whole_Blood",
       "unit": "TPM"
     },
@@ -115,12 +124,12 @@ Use the underscore-separated names exactly:
       "datasetId": "gtex_v8",
       "gencodeId": "ENSG00000139618.14",
       "geneSymbol": "BRCA2",
-      "median": 12.87,
+      "median": 4.55056,
       "tissueSiteDetailId": "Testis",
       "unit": "TPM"
     }
   ],
-  "paging_info": { "numberOfPages": 1, "page": 0, "maxItemsPerPage": 250 }
+  "paging_info": { "numberOfPages": 1, "page": 0, "maxItemsPerPage": 250, "totalNumberOfItems": 54 }
 }
 ```
 
